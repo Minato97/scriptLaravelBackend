@@ -75,22 +75,28 @@ content = content.replace('"3306:3306"',
 with open("docker-compose.yml", "w") as f:
     f.write(content)
 
-# Configurar .env
+# Configurar .env y .env.example
 if not os.path.exists(".env.example"):
     abort("No existe .env.example")
 
+def update_env_file(path):
+    with open(path, "r") as f:
+        content = f.read()
+
+    content = re.sub(r"DB_USERNAME=.*", "DB_USERNAME=laravel", content)
+    content = re.sub(r"DB_PASSWORD=.*", "DB_PASSWORD=root", content)
+    content = re.sub(r"DB_DATABASE=.*", f"DB_DATABASE={db_name}", content)
+    content = re.sub(r"DB_HOST=.*", "DB_HOST=db", content)
+    content = re.sub(r"APP_NAME=.*", f"APP_NAME={project_name}", content)
+
+    with open(path, "w") as f:
+        f.write(content)
+
+# Actualizar .env.example
+update_env_file(".env.example")
+
+# Crear .env a partir del example ya modificado
 shutil.copy(".env.example", ".env")
-
-with open(".env", "r") as f:
-    env = f.read()
-
-env = re.sub(r"DB_USERNAME=.*", "DB_USERNAME=laravel", env)
-env = re.sub(r"DB_PASSWORD=.*", "DB_PASSWORD=root", env)
-env = re.sub(r"DB_DATABASE=.*", f"DB_DATABASE={db_name}", env)
-env = re.sub(r"DB_HOST=.*", "DB_HOST=db", env)
-
-with open(".env", "w") as f:
-    f.write(env)
 
 # Levantar contenedores
 print("🐳 Construyendo contenedores...")
